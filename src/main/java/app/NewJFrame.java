@@ -90,8 +90,19 @@ public class NewJFrame extends javax.swing.JFrame {
      * Creates new form NewJFrame
      */
     public NewJFrame() {
+        mInstance = this;
         initComponents();
+        NewJFrame obj = NewJFrame.getInstance();
+        obj.setDefaultCloseOperation(obj.EXIT_ON_CLOSE);
+        
+        
     }
+
+    public static NewJFrame getInstance() {
+        return mInstance;
+    }
+
+    static NewJFrame mInstance;
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -114,8 +125,10 @@ public class NewJFrame extends javax.swing.JFrame {
         jTable1 = new javax.swing.JTable();
         jButton3 = new javax.swing.JButton();
         jRadioButton3 = new javax.swing.JRadioButton();
+        jButton4 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
         jLabel1.setText("Считать данные из файла");
 
@@ -165,33 +178,42 @@ public class NewJFrame extends javax.swing.JFrame {
         buttonGroup1.add(jRadioButton3);
         jRadioButton3.setText("биграмма");
 
+        jButton4.setText("График");
+
+        jButton5.setText("Гистограмма");
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel2)
+                    .addComponent(jRadioButton1)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addGap(121, 356, Short.MAX_VALUE))
+                        .addComponent(jButton2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton5))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jRadioButton1)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButton2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton3))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jRadioButton2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jRadioButton3))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel1)
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton1))
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(139, Short.MAX_VALUE))))
+                        .addComponent(jRadioButton2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jRadioButton3))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton1))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -211,7 +233,9 @@ public class NewJFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton2)
-                    .addComponent(jButton3))
+                    .addComponent(jButton3)
+                    .addComponent(jButton4)
+                    .addComponent(jButton5))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -269,8 +293,6 @@ public class NewJFrame extends javax.swing.JFrame {
                 jTable1.setModel(model);
                 RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
                 jTable1.setRowSorter(sorter);
-                final String series1 = "First";
-                final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
                 was.sort(null);
 
             } else if (jRadioButton2.isSelected()) {
@@ -313,7 +335,13 @@ public class NewJFrame extends javax.swing.JFrame {
                     minN = step;
                     step += letters.length / 200;
                 }
-
+                //сортировка таблицы
+                TableModel model = new LetterStatisticTableModel(was);
+                 jTable1.setModel(model);
+                 RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
+                 jTable1.setRowSorter(sorter);
+Plot pl = new Plot();
+        pl.setVisible(true);
                 //was.forEach(ws -> System.out.println(ws.toString()));
                 ChartPanel chartPanel1;
                 JFreeChart chart
@@ -356,13 +384,10 @@ public class NewJFrame extends javax.swing.JFrame {
                 plot.setRenderer(renderer);
                 final ChartPanel chartPanel = new ChartPanel(chart);
                 chartPanel.setPreferredSize(new java.awt.Dimension(400, 400));
-                setContentPane(chartPanel);
 
-                //сортировка таблицы
-                /*TableModel model = new LetterStatisticTableModel(was);
-                 jTable1.setModel(model);
-                 RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
-                 jTable1.setRowSorter(sorter);*/
+                pl.setContentPane(chartPanel);
+
+                
             } else if (jRadioButton3.isSelected()) {
                 //биграмма
                 char[] charts = sb.toString().toLowerCase().toCharArray();
@@ -511,6 +536,10 @@ public class NewJFrame extends javax.swing.JFrame {
         jTable1.setModel(new DefaultTableModel());
     }//GEN-LAST:event_jButton3ActionPerformed
 
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton5ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -551,6 +580,8 @@ public class NewJFrame extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
     private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
