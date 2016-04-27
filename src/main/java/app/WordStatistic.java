@@ -2,6 +2,10 @@ package app;
 
 //import .*;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -16,7 +20,10 @@ public class WordStatistic implements Comparable<WordStatistic> {
     final String word;
     long amount = 0;
     double frequency = 0;
-
+    //HashSet<Double> partFrequency = new HashSet<Double>();
+    ArrayList<Double> partFrequency = new ArrayList<Double>();
+    //double[] partFrequency = new double[201];
+    
     //private String name;
     /*public Person(String value){
          
@@ -59,8 +66,16 @@ public class WordStatistic implements Comparable<WordStatistic> {
         return word;
     }
 
+    public void setPartFrequency(ArrayList<Double> frequency) {
+        this.partFrequency = frequency;
+    }
+    
+    public ArrayList<Double> getPartFrequency() {
+        return partFrequency;
+    }
+    
     public String toString() {
         //return "word: " + this.word + " amount: " + this.amount + " frequecy: " + this.frequency;
-        return this.word + " " + this.amount + " " + this.frequency;
+        return this.word + " " + this.amount + " " + this.frequency + " " + this.partFrequency;
     }
 }

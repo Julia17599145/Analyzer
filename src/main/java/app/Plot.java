@@ -5,19 +5,35 @@
  */
 package app;
 
+
+import javax.swing.JPanel;
+
 /**
  *
  * @author Юлия
  */
 public class Plot extends javax.swing.JFrame {
 
+    private void createPlot(){
+        
+    }
+    
     /**
      * Creates new form Plot
      */
     public Plot() {
+        mInstance = this;
         initComponents();
+        NewJFrame inst = NewJFrame.getInstance();
+        
+    }
+    
+    public static Plot getInstance() {
+        return mInstance;
     }
 
+    static Plot mInstance;
+   
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -28,6 +44,7 @@ public class Plot extends javax.swing.JFrame {
     private void initComponents() {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowDeactivated(java.awt.event.WindowEvent evt) {
                 formWindowDeactivated(evt);
@@ -38,11 +55,11 @@ public class Plot extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 563, Short.MAX_VALUE)
+            .addGap(0, 650, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 419, Short.MAX_VALUE)
+            .addGap(0, 461, Short.MAX_VALUE)
         );
 
         pack();
