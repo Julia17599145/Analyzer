@@ -25,7 +25,6 @@ public class TextStatistics {
     }
 
     private WordStatistic generateWordStistic(List<String> wordsOfText, String word) {
-
         WordStatistic ws = new WordStatistic(word);
         ws.setAmount(getWordCountFromText(wordsOfText, word));
         ws.setFrequency(ws.getAmount() / (double) wordsOfText.size());

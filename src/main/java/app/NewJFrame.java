@@ -1,4 +1,5 @@
 package app;
+
 import java.awt.*;
 import java.awt.BorderLayout;
 //import java.awt.Color;
@@ -10,8 +11,10 @@ import java.io.*;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import javafx.scene.chart.CategoryAxis;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
@@ -64,6 +67,7 @@ public class NewJFrame extends javax.swing.JFrame {
     private TextStatistics stats = new TextStatistics(wordList);
     private List<WordStatistic> was = stats.getWordsAndAmounts();
     private JComboBox cb = new JComboBox();
+    private JPanel panetJTitle = new JPanel();
     private JPanel panelJPanel = new JPanel();
     private JPanel panelJComboBox = new JPanel();
     private Plot pl = new Plot();
@@ -132,13 +136,17 @@ public class NewJFrame extends javax.swing.JFrame {
         panelJComboBox.removeAll();
         /*panelJPanel.revalidate();
          panelJComboBox.revalidate();*/
+        JLabel title = new JLabel();
+        title.setText("График зависимости частоты появление лексической единицы '" + cb.getSelectedItem().toString().toUpperCase() + "' от длины текста");
         chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
         JLabel label = new JLabel();
         label.setText("Выберите символ ");
+        panetJTitle.add(title);
         panelJPanel.add(chartPanel);
         panelJComboBox.add(label);
         panelJComboBox.add(cb);
         JPanel panelWindow = new JPanel();
+        panelWindow.add(panetJTitle);
         panelWindow.add(panelJPanel);
         panelWindow.add(panelJComboBox);
         pl.setContentPane(panelWindow);
@@ -163,18 +171,26 @@ public class NewJFrame extends javax.swing.JFrame {
 
         for (int i = 0; i < was.size(); i++) {
             if (was.get(i).getWord().equals(item)) {
-                chart = ChartFactory.createXYLineChart("", "Количество символов в тексте", "Частота появления символа",
+                chart = ChartFactory.createXYLineChart("", "Количество лексических единиц в тексте", "Частота появления лексической единицы",
                         createDataset(was.get(i).partFrequency, step), PlotOrientation.VERTICAL, false, true, false);
                 chart.setBackgroundPaint(Color.white);
                 //Создаем аннотацию указывая ее текст и координаты в единицах координатной системы самого графика
-                XYTextAnnotation c2 = new XYTextAnnotation("СИМВОЛ '" + item.toString().toUpperCase() + "'", textLength - (textLength / 4), was.get(i).getPartFrequency().get(150) - 0.001);
+                //XYTextAnnotation c2 = new XYTextAnnotation("СИМВОЛ '" + item.toString().toUpperCase() + "'", textLength - (textLength / 4), was.get(i).getPartFrequency().get(150) - 0.001);
                 //Присваивем аннотации якорь; т.е. указываем в какую сторону от указанных координат будет простираться текст
-                c2.setTextAnchor(TextAnchor.HALF_ASCENT_RIGHT);
+                //c2.setTextAnchor(TextAnchor.HALF_ASCENT_RIGHT);
                 //Наносим аннотацию на график
-                chart.getXYPlot().addAnnotation(c2);
+                //chart.getXYPlot().addAnnotation(c2);
             }
         }
         return chart;
+    }
+
+    private void showTable(List<WordStatistic> was) {
+        TableModel model = new WordStatisticTableModel(was);
+        jTable1.setModel(model);
+        RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
+        jTable1.setRowSorter(sorter);
+        was.sort(null);
     }
 
     /**
@@ -221,6 +237,8 @@ public class NewJFrame extends javax.swing.JFrame {
         jButton5 = new javax.swing.JButton();
         jSpinner1 = new javax.swing.JSpinner();
         jSpinner2 = new javax.swing.JSpinner();
+        jButton6 = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
 
         jList1.setModel(new javax.swing.AbstractListModel() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
@@ -298,38 +316,50 @@ public class NewJFrame extends javax.swing.JFrame {
 
         jSpinner2.setValue(1);
 
+        jButton6.setText("Генерировать");
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton6ActionPerformed(evt);
+            }
+        });
+
+        jLabel3.setText("Сгенерировать таблицу кодов лексических едениц");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jRadioButton3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jLabel2)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jButton2)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(jButton3)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(jButton4)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(jButton5))
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jLabel1)
-                            .addGap(18, 18, 18)
-                            .addComponent(jButton1))
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jRadioButton1)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jRadioButton2)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addGap(2, 2, 2)
+                        .addComponent(jButton6))
+                    .addComponent(jLabel2)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton5))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton1))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jRadioButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jRadioButton2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -358,7 +388,11 @@ public class NewJFrame extends javax.swing.JFrame {
                     .addComponent(jButton5))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(16, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton6)
+                    .addComponent(jLabel3))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -419,11 +453,7 @@ public class NewJFrame extends javax.swing.JFrame {
 
                 was = stats.getWordsAndAmounts();
 
-                TableModel model = new WordStatisticTableModel(was);
-                jTable1.setModel(model);
-                RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
-                jTable1.setRowSorter(sorter);
-                was.sort(null);
+                showTable(was);
 
             } else if (jRadioButton2.isSelected()) {
                 //словосочетание
@@ -446,11 +476,7 @@ public class NewJFrame extends javax.swing.JFrame {
                 stats = new TextStatistics(wordList);
                 was = stats.getWordsAndAmounts();
                 //сортировка таблицы
-                TableModel model = new WordStatisticTableModel(was);
-                jTable1.setModel(model);
-                RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
-                jTable1.setRowSorter(sorter);
-                was.sort(null);
+                showTable(was);
 
             } else if (jRadioButton3.isSelected()) {
                 //N-граммы
@@ -464,11 +490,7 @@ public class NewJFrame extends javax.swing.JFrame {
                 stats = new TextStatistics(wordList);
                 was = stats.getWordsAndAmounts();
 
-                TableModel model = new WordStatisticTableModel(was);
-                jTable1.setModel(model);
-                RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
-                jTable1.setRowSorter(sorter);
-                was.sort(null);
+                showTable(was);
                 /*
                  int step = bigramms.length / 200;
                  int minN = 0;
@@ -633,7 +655,7 @@ public class NewJFrame extends javax.swing.JFrame {
                 TextAnchor.CENTER_LEFT, 45
         );
         renderer.setPositiveItemLabelPositionFallback(p2);
-              //   final CategoryAxis domainAxis = plot.getDomainAxis();
+        //   final CategoryAxis domainAxis = plot.getDomainAxis();
         //domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
         //plot.setDomainGridlinePaint(Color.black);
         plot.setRangeGridlinePaint(Color.black);
@@ -660,6 +682,77 @@ public class NewJFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton4ActionPerformed
 
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+        // TODO add your handling code here:
+        File file = new File("../CodeDecode/bankcode.txt");
+        StringBuilder readBuffer = new StringBuilder();
+        Map<String, Integer> dictionary = new HashMap<String, Integer>();
+        int code = 0;
+        if (file.exists() && file.length() != 0) {
+            try {
+                //Объект для чтения файла в буфер
+                FileInputStream stream = new FileInputStream(file.getAbsoluteFile());
+                InputStreamReader reader = new InputStreamReader(stream, "Cp1251");
+                BufferedReader in = new BufferedReader(reader);
+                try {
+                    //В цикле построчно считываем файл
+                    String s;
+                    while ((s = in.readLine()) != null) {
+                        readBuffer.append(s);
+                    }
+                    String[] splitFile = readBuffer.toString().split(" ");
+
+                    for (int i = 0; i < splitFile.length; i += 2) {
+                        dictionary.put(splitFile[i], Integer.parseInt(splitFile[i + 1]));
+                    }
+                } finally {
+                    in.close();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+
+            //задаем русский, английский алфавиты и спец символы
+            //спецсимволы и английский алфавит
+            for (int i = 33; i < 127; i++) {
+                dictionary.put("" + (char) i, code);
+                code++;
+            }
+            for (int i = 1040; i < 1104; i++) {
+                dictionary.put("" + (char) i, code);
+                code++;
+            }
+        }
+        //генерируем коды лексических едениц частота встречания которых > 0.5
+        for (int i = 0; i < was.size(); i++) {
+            if (was.get(i).getFrequency() > 0.5) {
+                dictionary.put(was.get(i).getWord(), code);
+                code++;
+            }
+        }
+        //записываем в файл
+        File writeFile = new File("../CodeDecode/bankcode.txt");
+        try {
+            //проверяем, что если файл не существует то создаем его
+            if (!writeFile.exists()) {
+                writeFile.createNewFile();
+            }
+            PrintWriter out = new PrintWriter(writeFile.getAbsoluteFile());
+
+            try {
+                //out.print(dictionary);
+                for (Map.Entry<String, Integer> entry : dictionary.entrySet()) {
+                    out.print(entry.getKey() + " " + entry.getValue() + " ");
+                }
+            } finally {
+                out.close();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }//GEN-LAST:event_jButton6ActionPerformed
+
     private void cbItemStateChanged(java.awt.event.ItemEvent evt) {
         // TODO add your handling code here:
         if (jRadioButton1.isSelected() || jRadioButton2.isSelected()) {
@@ -677,10 +770,15 @@ public class NewJFrame extends javax.swing.JFrame {
          pl.remove(getContentPane());
         
          pl.setContentPane(jPanel);*/
+        JLabel title = new JLabel();
+        title.setText("График зависимости частоты появление лексической единицы '" + cb.getSelectedItem().toString().toUpperCase() + "' от длины текста");
 
         chartPanel.setSize(panelJPanel.getSize());
         panelJPanel.removeAll();
         panelJPanel.revalidate();
+        panetJTitle.removeAll();
+        panetJTitle.revalidate();
+        panetJTitle.add(title);
         panelJPanel.add(chartPanel);
     }
 
@@ -726,9 +824,11 @@ public class NewJFrame extends javax.swing.JFrame {
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
+    private javax.swing.JButton jButton6;
     private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JList jList1;
     private javax.swing.JRadioButton jRadioButton1;
     private javax.swing.JRadioButton jRadioButton2;
