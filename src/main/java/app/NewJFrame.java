@@ -315,7 +315,7 @@ public class NewJFrame extends javax.swing.JFrame {
 
         jLabel4.setText("Генерировать коды с частотов встречания больше");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0.5", "0.4", "0.3", "0.2", "0.1", "0.01", "0.001", "0.0001" }));
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0.1", "0.01", "0.007", "0.005", "0.003", "0.001", "0.0001" }));
 
         jLabel5.setText("jLabel5");
 
@@ -732,7 +732,7 @@ public class NewJFrame extends javax.swing.JFrame {
         System.err.println("num- " + code);
         //генерируем коды лексических едениц частота встречания которых > 0.5
         for (int i = 0; i < was.size(); i++) {
-            if (was.get(i).getFrequency() > (int) jComboBox1.getSelectedItem() && code < 4096 && !dictionary.containsKey(was.get(i).getWord())) {
+            if (was.get(i).getFrequency() > Double.parseDouble(jComboBox1.getSelectedItem().toString()) && code < 4096 && !dictionary.containsKey(was.get(i).getWord())) {
                 dictionary.put(was.get(i).getWord(), code);
                 System.err.println(was.get(i).getWord());
                 System.err.println("c-- " + code);
@@ -748,7 +748,7 @@ public class NewJFrame extends javax.swing.JFrame {
             if (!writeFile.exists()) {
                 writeFile.createNewFile();
             }
-            PrintWriter out = new PrintWriter(writeFile.getAbsoluteFile());
+            PrintWriter out = new PrintWriter(writeFile.getAbsoluteFile(), "Cp1251");
 
             try {
                 //out.print(dictionary);
