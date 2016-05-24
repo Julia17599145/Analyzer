@@ -135,7 +135,6 @@ public class NewJFrame extends javax.swing.JFrame {
         panelWindow.add(panelJPanel);
         panelWindow.add(panelJComboBox);
         pl.setContentPane(panelWindow);
-        //pl.setContentPane(panelJComboBox);
 
     }
 
@@ -159,12 +158,6 @@ public class NewJFrame extends javax.swing.JFrame {
                 chart = ChartFactory.createXYLineChart("", "Количество лексических единиц в тексте", "Частота появления лексической единицы",
                         createDataset(was.get(i).partFrequency, step), PlotOrientation.VERTICAL, false, true, false);
                 chart.setBackgroundPaint(Color.white);
-                //Создаем аннотацию указывая ее текст и координаты в единицах координатной системы самого графика
-                //XYTextAnnotation c2 = new XYTextAnnotation("СИМВОЛ '" + item.toString().toUpperCase() + "'", textLength - (textLength / 4), was.get(i).getPartFrequency().get(150) - 0.001);
-                //Присваивем аннотации якорь; т.е. указываем в какую сторону от указанных координат будет простираться текст
-                //c2.setTextAnchor(TextAnchor.HALF_ASCENT_RIGHT);
-                //Наносим аннотацию на график
-                //chart.getXYPlot().addAnnotation(c2);
             }
         }
         return chart;
@@ -540,17 +533,6 @@ public class NewJFrame extends javax.swing.JFrame {
         );
         renderer.setSeriesPaint(0, gp0);
         plot.setBackgroundPaint(Color.white);
-        /*final ItemLabelPosition p = new ItemLabelPosition(
-         ItemLabelAnchor.INSIDE12, TextAnchor.CENTER_RIGHT,
-         TextAnchor.CENTER_RIGHT, -Math.PI / 5.0
-         );
-         renderer.setPositiveItemLabelPosition(p);*/
-        /*final ItemLabelPosition p2 = new ItemLabelPosition(
-         ItemLabelAnchor.OUTSIDE6, TextAnchor.CENTER_LEFT,
-         TextAnchor.BASELINE_CENTER, 0.0 //CENTER_LEFT
-         );
-         // renderer.setPositiveItemLabelPositionFallback(ItemLabelPosition.UP_45);
-         renderer.setPositiveItemLabelPositionFallback(p2);*/
         plot.setRangeGridlinePaint(Color.black);
         plot.setRenderer(renderer);
         final ChartPanel chartPanel = new ChartPanel(chart);
@@ -580,95 +562,10 @@ public class NewJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        // TODO add your handling code here:
-        /*File file = new File("../CodeDecode/bankcode.txt");
-         StringBuilder readBuffer = new StringBuilder();
-         Map<String, Integer> dictionary = new HashMap<String, Integer>();
-         int code = 0;
-         System.err.println("dfgh");
-         if (file.exists() && file.length() != 0) {
-         try {
-         //Объект для чтения файла в буфер
-         FileInputStream stream = new FileInputStream(file.getAbsoluteFile());
-         InputStreamReader reader = new InputStreamReader(stream, "Cp1251");
-         BufferedReader in = new BufferedReader(reader);
-         try {
-         //В цикле построчно считываем файл
-         String s;
-         while ((s = in.readLine()) != null) {
-         readBuffer.append(s);
-         }
-         String[] splitFile = readBuffer.toString().split(".*(~|).*");
-         for (int i = 0; i < splitFile.length; i++) {
-         System.err.println(splitFile[i]);
-         }
-         for (int i = 0; i < splitFile.length; i += 2) {
-         System.err.println("dd");
-         dictionary.put(splitFile[i], Integer.parseInt(splitFile[i + 1]));
-         }
-         } finally {
-         in.close();
-         }
-         } catch (IOException e) {
-         throw new RuntimeException(e);
-         }
-         } else {
-         //задаем русский, английский алфавиты и спец символы
-         //спецсимволы и английский алфавит
-         System.err.println("qqe");
-         for (int i = 33; i < 127; i++) {
-         dictionary.put("" + (char) i, code);
-         code++;
-         }
-         for (int i = 1040; i < 1104; i++) {
-         dictionary.put("" + (char) i, code);
-         code++;
-         }
-         dictionary.put("" + (char) 8470, code);
-         code++;
-         }
-         int max = 0;
-         for (Map.Entry<String, Integer> entry : dictionary.entrySet()) {
-         if (entry.getValue() > max) {
-         max = entry.getValue();
-         }
-         }
-         code = max;
-
-         //генерируем коды лексических едениц частота встречания которых > 0.5
-         //последнее добавленное 
-         for (int i = 0; i < was.size(); i++) {
-         if (was.get(i).getFrequency() > 0.5) {
-         dictionary.put(was.get(i).getWord(), code);
-         code++;
-         }
-         }
-         System.err.println(dictionary);
-         //записываем в файл
-         File writeFile = new File("../CodeDecode/bankcode.txt");
-         try {
-         //проверяем, что если файл не существует то создаем его
-         if (!writeFile.exists()) {
-         writeFile.createNewFile();
-         }
-         PrintWriter out = new PrintWriter(writeFile.getAbsoluteFile());
-
-         try {
-         //out.print(dictionary);
-         for (Map.Entry<String, Integer> entry : dictionary.entrySet()) {
-         out.print(entry.getKey() + "~|" + entry.getValue() + "~|");
-         }
-         } finally {
-         out.close();
-         JOptionPane.showMessageDialog(jButton1, "Сгенерированные коды сохранены в файл");
-         }
-         } catch (IOException e) {
-         throw new RuntimeException(e);
-         }*/
         File file = new File("../CodeDecode/bankcode.txt");
         StringBuilder readBuffer = new StringBuilder();
-        Map<String, Integer> dictionary = new HashMap<String, Integer>();
-        int code = 0;
+        Map<String, Short> dictionary = new HashMap<String, Short>();
+        Short code = 0;
         if (file.exists() && file.length() != 0) {
             try {
                 //Объект для чтения файла в буфер
@@ -682,12 +579,9 @@ public class NewJFrame extends javax.swing.JFrame {
                         readBuffer.append(s);
                     }
                     String[] splitFile = readBuffer.toString().trim().split("(~\\|)");
-                    for (int i = 0; i < splitFile.length; i++) {
-                        System.err.println(splitFile[i]);
-                    }
+                    
                     for (int i = 0; i < splitFile.length; i += 2) {
-                        System.err.println("ddd");
-                        dictionary.put(splitFile[i], Integer.parseInt(splitFile[i + 1]));
+                        dictionary.put(splitFile[i], Short.parseShort(splitFile[i + 1]));
                     }
                 } finally {
                     in.close();
@@ -700,30 +594,23 @@ public class NewJFrame extends javax.swing.JFrame {
             //задаем русский, английский алфавиты и спец символы
             //спецсимволы и английский алфавит
             for (int i = 32; i < 127; i++) {
-                dictionary.put("" + (char) i, code);
-                code++;
+                dictionary.put("" + (char) i, code++);
             }
             for (int i = 1040; i < 1104; i++) {
-                dictionary.put("" + (char) i, code);
-                code++;
+                dictionary.put("" + (char) i, code++);
             }
             //добавления №
-            dictionary.put("" + (char) 8470, code);
-            code++;
+            dictionary.put("" + (char) 8470, code++);
             //добавление символа ё
-            dictionary.put("" + (char) 1105, code);
-            code++;
+            dictionary.put("" + (char) 1105, code++);
             //добавление символа Ё
-            dictionary.put("" + (char) 1025, code);
-            code++;
-            dictionary.put("" + (char) 171, code);
-            code++;
-            dictionary.put("" + (char) 187, code);
-            code++;
+            dictionary.put("" + (char) 1025, code++);
+            dictionary.put("" + (char) 171, code++);
+            dictionary.put("" + (char) 187, code++);
 
         }
-        int max = 0;
-        for (Map.Entry<String, Integer> entry : dictionary.entrySet()) {
+        Short max = 0;
+        for (Map.Entry<String, Short> entry : dictionary.entrySet()) {
             if (entry.getValue() > max) {
                 max = entry.getValue();
             }
@@ -752,7 +639,7 @@ public class NewJFrame extends javax.swing.JFrame {
 
             try {
                 //out.print(dictionary);
-                for (Map.Entry<String, Integer> entry : dictionary.entrySet()) {
+                for (Map.Entry<String, Short> entry : dictionary.entrySet()) {
                     out.print(entry.getKey() + "~|" + entry.getValue() + "~|");
                 }
             } finally {
@@ -776,11 +663,6 @@ public class NewJFrame extends javax.swing.JFrame {
         ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
         plotDesign(chart);
-        /*chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
-         jPanel.add(chartPanel);
-         pl.remove(getContentPane());
-        
-         pl.setContentPane(jPanel);*/
         JLabel title = new JLabel();
         title.setText("График зависимости частоты появление лексической единицы '" + cb.getSelectedItem().toString().toUpperCase() + "' от длины текста");
 
