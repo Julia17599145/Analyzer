@@ -62,8 +62,10 @@ import org.tartarus.snowball.ext.russianStemmer;
  */
 public class NewJFrame extends javax.swing.JFrame {
 
+    private File file = new File("");
+    private StringBuilder readFile = new StringBuilder();
     private String[] words = {};
-    ArrayList<String> wordList = new ArrayList<String>(Arrays.asList(words));
+    private ArrayList<String> wordList = new ArrayList<String>();
     private TextStatistics stats = new TextStatistics(wordList);
     private List<WordStatistic> was = stats.getWordsAndAmounts();
     private JComboBox cb = new JComboBox();
@@ -74,7 +76,45 @@ public class NewJFrame extends javax.swing.JFrame {
     private JFreeChart chart = null;
     private char[] chars = {};
 
-    public XYDataset createDataset(ArrayList<Double> frequency, ArrayList<Integer> step) {
+    public String[] wordStat() {
+        String regexp = "^[^а-я\\,;_\\-:()–«»\".!?\\s\\d]|[\\,;\\-:()–«»\".!?\\s\\d]+";
+        words = readFile.toString().trim().split(regexp);
+        russianStemmer stemmer = new russianStemmer();
+        for (int i = 0; i < words.length; i++) {
+            stemmer.setCurrent(words[i]);
+            if (stemmer.stem()) {
+                words[i] = stemmer.getCurrent();
+            }
+        }
+        return words;
+    }
+
+    public String[] ngramStat() {
+        chars = readFile.toString().toCharArray();
+        int N = (int) jSpinner2.getValue();
+        String[] ngramms = new String[readFile.length() - N];
+        for (int i = 0; i < readFile.length() - N; i++) {
+            ngramms[i] = readFile.toString().substring(i, i + N);
+        }
+        return ngramms;
+    }
+
+    public String[] phraseStat() {
+        String regexp = "^[^а-я\\,;_\\-:()–«»\".!?\\s\\d]|[\\,;\\-:()–«»\".!?\\s\\d]+";
+        words = readFile.toString().trim().split(regexp);
+        int N = (int) jSpinner1.getValue();
+        String[] phrases = new String[words.length - N];
+        for (int i = 0; i < phrases.length; i++) {
+            phrases[i] = "";
+            for (int j = i; j < i + N; j++) {
+                phrases[i] = phrases[i].concat(" ").concat(words[j]);
+            }
+            phrases[i] = phrases[i].substring(1);
+        }
+        return phrases;
+    }
+
+    public XYDataset createDataset(ArrayList<Integer> step, ArrayList<Double> frequency) {
 
         final XYSeriesCollection dataset = new XYSeriesCollection();
         final XYSeries c2
@@ -110,9 +150,9 @@ public class NewJFrame extends javax.swing.JFrame {
         });
     }
 
-    private void showElements(List<WordStatistic> was, ArrayList<Integer> step, int textLength) {
+    private void showElements(List<WordStatistic> was, ArrayList<Integer> step) {
 
-        chart = createPlot(was, step, cb.getSelectedItem(), textLength);
+        chart = createPlot(was, step, cb.getSelectedItem());
         plotDesign(chart);
         ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setDomainZoomable(false);
@@ -122,7 +162,7 @@ public class NewJFrame extends javax.swing.JFrame {
         panelJPanel.removeAll();
         panelJComboBox.removeAll();
         JLabel title = new JLabel();
-        title.setText("График зависимости частоты появление лексической единицы '" + cb.getSelectedItem().toString().toUpperCase() + "' от длины текста");
+        title.setText("График зависимости частоты появление лексической единицы '" + cb.getSelectedItem().toString() + "' от длины текста");
         chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
         JLabel label = new JLabel();
         label.setText("Выберите лексическую единицу");
@@ -151,12 +191,12 @@ public class NewJFrame extends javax.swing.JFrame {
 
     }
 
-    private JFreeChart createPlot(List<WordStatistic> was, ArrayList<Integer> step, Object item, int textLength) {
+    private JFreeChart createPlot(List<WordStatistic> was, ArrayList<Integer> step, Object item) {
 
         for (int i = 0; i < was.size(); i++) {
             if (was.get(i).getWord().equals(item)) {
-                chart = ChartFactory.createXYLineChart("", "Количество лексических единиц в тексте", "Частота появления лексической единицы",
-                        createDataset(was.get(i).partFrequency, step), PlotOrientation.VERTICAL, false, true, false);
+                chart = ChartFactory.createXYLineChart("", "Длина текста", "Частота появления лексической единицы",
+                        createDataset(step, was.get(i).partFrequency), PlotOrientation.VERTICAL, false, true, false);
                 chart.setBackgroundPaint(Color.white);
             }
         }
@@ -169,6 +209,76 @@ public class NewJFrame extends javax.swing.JFrame {
         RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
         jTable1.setRowSorter(sorter);
         was.sort(null);
+    }
+
+    public void createHistogram() {
+        final String series1 = "Лексическая единица";
+        final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        was.sort(null);
+        for (int i = 0; i < 40; i++) {
+            dataset.addValue(was.get(i).getFrequency(), series1, was.get(i).getWord());
+        }
+        final JFreeChart chart = ChartFactory.createBarChart(
+                "Гистограмма распределения вероятности появления лексических единиц в тексте", // chart title
+                "Лексическая единица", // domain axis label
+                "Частота появления лексической единицы", // range axis label
+                dataset, // data
+                PlotOrientation.VERTICAL, // orientation
+                false, // include legend
+                true, // tooltips?
+                false // URLs?
+        );
+        histogramDesign(chart);
+    }
+
+    public void histogramDesign(JFreeChart chart) {
+        final CategoryPlot plot = chart.getCategoryPlot();
+        final BarRenderer renderer = (BarRenderer) plot.getRenderer();
+
+        renderer.setDrawBarOutline(false);
+        renderer.setItemMargin(0.10);
+        renderer.setShadowVisible(false);
+        final GradientPaint gp0 = new GradientPaint(
+                0.0f, 0.0f, Color.black,
+                0.0f, 0.0f, Color.black
+        );
+        renderer.setSeriesPaint(0, gp0);
+        plot.setBackgroundPaint(Color.white);
+        plot.setRangeGridlinePaint(Color.black);
+        plot.setRenderer(renderer);
+        final ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setPreferredSize(new java.awt.Dimension(650, 450));
+        panelJPanel.removeAll();
+        panelJComboBox.removeAll();
+        pl.setVisible(true);
+        panelJPanel.add(chartPanel);
+        pl.setContentPane(panelJPanel);
+    }
+
+    public void readFile() {
+        int returnVal = jFileChooser1.showOpenDialog(this);
+
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            file = jFileChooser1.getSelectedFile();
+            readFile = new StringBuilder();
+            try {
+                //Объект для чтения файла в буфер
+                FileInputStream stream = new FileInputStream(file.getAbsoluteFile());
+                InputStreamReader reader = new InputStreamReader(stream, "Cp1251");
+                BufferedReader in = new BufferedReader(reader);
+                try {
+                    //В цикле построчно считываем файл
+                    String line;
+                    while ((line = in.readLine()) != null) {
+                        readFile.append(line);
+                    }
+                } finally {
+                    in.close();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     /**
@@ -201,6 +311,7 @@ public class NewJFrame extends javax.swing.JFrame {
         buttonGroup1 = new javax.swing.ButtonGroup();
         jScrollPane2 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList();
+        buttonGroup2 = new javax.swing.ButtonGroup();
         jLabel1 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
@@ -217,9 +328,11 @@ public class NewJFrame extends javax.swing.JFrame {
         jSpinner2 = new javax.swing.JSpinner();
         jButton6 = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
         jComboBox1 = new javax.swing.JComboBox();
         jLabel5 = new javax.swing.JLabel();
+        jSpinner3 = new javax.swing.JSpinner();
+        jRadioButton4 = new javax.swing.JRadioButton();
+        jRadioButton5 = new javax.swing.JRadioButton();
 
         jList1.setModel(new javax.swing.AbstractListModel() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
@@ -257,16 +370,18 @@ public class NewJFrame extends javax.swing.JFrame {
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null}
+
             },
             new String [] {
-                "Title 1", "Title 2", "Title3"
+                "№", "Лексема", "Количество", "Частота"
             }
         ));
         jScrollPane1.setViewportView(jTable1);
+        if (jTable1.getColumnModel().getColumnCount() > 0) {
+            jTable1.getColumnModel().getColumn(0).setMaxWidth(50);
+            jTable1.getColumnModel().getColumn(2).setMaxWidth(80);
+            jTable1.getColumnModel().getColumn(3).setMaxWidth(80);
+        }
 
         jButton3.setText("Очистить");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
@@ -304,13 +419,18 @@ public class NewJFrame extends javax.swing.JFrame {
             }
         });
 
-        jLabel3.setText("Сгенерировать таблицу кодов лексических едениц");
-
-        jLabel4.setText("Генерировать коды с частотов встречания больше");
+        jLabel3.setText("Сгенерировать таблицу кодов лексических единиц");
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0.1", "0.01", "0.007", "0.005", "0.003", "0.001", "0.0001" }));
 
         jLabel5.setText("jLabel5");
+
+        buttonGroup2.add(jRadioButton4);
+        jRadioButton4.setSelected(true);
+        jRadioButton4.setText("Генерировать коды с частотой встречания больше");
+
+        buttonGroup2.add(jRadioButton5);
+        jRadioButton5.setText("Генерировать коды до лексемы с номером");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -318,44 +438,48 @@ public class NewJFrame extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jRadioButton3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel2)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jButton2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton5))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton1))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jRadioButton1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jRadioButton2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel3)
+                            .addComponent(jRadioButton5))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton6))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton6)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jRadioButton3)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jLabel2)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jButton2)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(jButton3)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(jButton4)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(jButton5))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel1)
+                                    .addGap(18, 18, 18)
+                                    .addComponent(jButton1))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jRadioButton1)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jRadioButton2)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(jSpinner3, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jRadioButton4)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -389,42 +513,23 @@ public class NewJFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4))
+                    .addComponent(jRadioButton4))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jSpinner3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jRadioButton5))
+                .addGap(6, 6, 6)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(jButton6))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(1, 1, 1))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    File file = new File("");
-    StringBuilder readFile = new StringBuilder();
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        int returnVal = jFileChooser1.showOpenDialog(this);
 
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            file = jFileChooser1.getSelectedFile();
-            readFile = new StringBuilder();
-            try {
-                //Объект для чтения файла в буфер
-                FileInputStream stream = new FileInputStream(file.getAbsoluteFile());
-                InputStreamReader reader = new InputStreamReader(stream, "Cp1251");
-                BufferedReader in = new BufferedReader(reader);
-                try {
-                    //В цикле построчно считываем файл
-                    String s;
-                    while ((s = in.readLine()) != null) {
-                        readFile.append(s);
-                    }
-                } finally {
-                    in.close();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        readFile();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
@@ -436,39 +541,17 @@ public class NewJFrame extends javax.swing.JFrame {
             jLabel5.setText("Количество символов в файле " + readFile.length());
             if (jRadioButton1.isSelected()) {
                 //основы слова
-                //String regexp = "\\s+\\-\\s+[,;:.!?\\s]+";
-                String regexp = "^[^а-я\\,;_\\-:()–«»\".!?\\s\\d]|[\\,;\\-:()–«»\".!?\\s\\d]+";
+                words = wordStat();
 
-                words = readFile.toString().toLowerCase().trim().split(regexp);
-                russianStemmer stemmer = new russianStemmer();
-                for (int i = 0; i < words.length; i++) {
-                    stemmer.setCurrent(words[i]);
-                    if (stemmer.stem()) {
-                        words[i] = stemmer.getCurrent();
-                    }
-                }
                 wordList = new ArrayList(Arrays.asList(words));
-
                 stats = new TextStatistics(wordList);
-
                 was = stats.getWordsAndAmounts();
-
                 showTable(was);
 
             } else if (jRadioButton2.isSelected()) {
                 //словосочетание
-                String regexp = "^[^а-я\\,;_\\-:()–«»\".!?\\s\\d]|[\\,;\\-:()–«»\".!?\\s\\d]+";
+                String[] phrases = phraseStat();
 
-                words = readFile.toString().toLowerCase().trim().split(regexp);
-                int N = (int) jSpinner1.getValue();
-                String[] phrases = new String[words.length - N];
-                for (int i = 0; i < phrases.length; i++) {
-                    phrases[i] = "";
-                    for (int j = i; j < i + N; j++) {
-                        phrases[i] = phrases[i].concat(" ").concat(words[j]);
-                    }
-                    phrases[i] = phrases[i].substring(1);
-                }
                 wordList = new ArrayList(Arrays.asList(phrases));
                 stats = new TextStatistics(wordList);
                 was = stats.getWordsAndAmounts();
@@ -477,16 +560,11 @@ public class NewJFrame extends javax.swing.JFrame {
 
             } else if (jRadioButton3.isSelected()) {
                 //N-граммы
-                chars = readFile.toString().toLowerCase().toCharArray();
-                int N = (int) jSpinner2.getValue();
-                String[] ngramms = new String[readFile.length() - N];
-                for (int i = 0; i < readFile.length() - N; i++) {
-                    ngramms[i] = readFile.toString().substring(i, i + N);
-                }
+                String[] ngramms = ngramStat();
+
                 wordList = new ArrayList(Arrays.asList(ngramms));
                 stats = new TextStatistics(wordList);
                 was = stats.getWordsAndAmounts();
-
                 showTable(was);
             }
         }
@@ -501,134 +579,106 @@ public class NewJFrame extends javax.swing.JFrame {
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         // TODO add your handling code here:
         //прорисовка гистограммы
-        if(was.isEmpty()){
+        if (was.isEmpty()) {
             JOptionPane.showMessageDialog(jButton1, "Нет данных для построения гистограммы!");
             return;
         }
-        final String series1 = "Лексическая единица";
-        final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        was.sort(null);
-        for (int i = 0; i < 10; i++) {
-            dataset.addValue(was.get(i).getFrequency(), series1, was.get(i).getWord());
-        }
-        final JFreeChart chart = ChartFactory.createBarChart(
-                "Гистограмма распределения вероятности появления лексических единиц в тексте", // chart title
-                "Лексическая единица", // domain axis label
-                "Частота появления лексической единицы", // range axis label
-                dataset, // data
-                PlotOrientation.VERTICAL, // orientation
-                false, // include legend
-                true, // tooltips?
-                false // URLs?
-        );
-        final CategoryPlot plot = chart.getCategoryPlot();
-        final BarRenderer renderer = (BarRenderer) plot.getRenderer();
-
-        renderer.setDrawBarOutline(false);
-        renderer.setItemMargin(0.10);
-        renderer.setShadowVisible(false);
-        final GradientPaint gp0 = new GradientPaint(
-                0.0f, 0.0f, Color.black,
-                0.0f, 0.0f, Color.black
-        );
-        renderer.setSeriesPaint(0, gp0);
-        plot.setBackgroundPaint(Color.white);
-        plot.setRangeGridlinePaint(Color.black);
-        plot.setRenderer(renderer);
-        final ChartPanel chartPanel = new ChartPanel(chart);
-        chartPanel.setPreferredSize(new java.awt.Dimension(650, 450));
-        panelJPanel.removeAll();
-        panelJComboBox.removeAll();
-        pl.setVisible(true);
-        panelJPanel.add(chartPanel);
-        pl.setContentPane(panelJPanel);
+        createHistogram();
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
-        if(was.isEmpty()){
+        if (was.isEmpty()) {
             JOptionPane.showMessageDialog(jButton1, "Нет данных для построения графика!");
             return;
         }
         if (jRadioButton1.isSelected() || jRadioButton2.isSelected()) {
-            ArrayList<Integer> step = createStep(words.length);
+            ArrayList<Integer> step = createStep(readFile.length());
             fillInComboBox();
-            showElements(was, step, words.length);
+            showElements(was, step);
         } else if (jRadioButton3.isSelected()) {
-            ArrayList<Integer> step = createStep(chars.length);
+            ArrayList<Integer> step = createStep(readFile.length());
             fillInComboBox();
-            showElements(was, step, chars.length);
+            showElements(was, step);
         }
     }//GEN-LAST:event_jButton4ActionPerformed
 
-    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        File file = new File("../CodeDecode/bankcode.txt");
+    public Map<String, Short> readTable(File file) {
+        //File file = new File("../CodeDecode/bankcode.txt");
         StringBuilder readBuffer = new StringBuilder();
         Map<String, Short> dictionary = new HashMap<String, Short>();
         Short code = 0;
-        if (file.exists() && file.length() != 0) {
+        try {
+            //Объект для чтения файла в буфер
+            FileInputStream stream = new FileInputStream(file.getAbsoluteFile());
+            InputStreamReader reader = new InputStreamReader(stream, "Cp1251");
+            BufferedReader in = new BufferedReader(reader);
             try {
-                //Объект для чтения файла в буфер
-                FileInputStream stream = new FileInputStream(file.getAbsoluteFile());
-                InputStreamReader reader = new InputStreamReader(stream, "Cp1251");
-                BufferedReader in = new BufferedReader(reader);
-                try {
-                    //В цикле построчно считываем файл
-                    String s;
-                    while ((s = in.readLine()) != null) {
-                        readBuffer.append(s);
-                    }
-                    String[] splitFile = readBuffer.toString().trim().split("(~\\|)");
-                    
-                    for (int i = 0; i < splitFile.length; i += 2) {
-                        dictionary.put(splitFile[i], Short.parseShort(splitFile[i + 1]));
-                    }
-                } finally {
-                    in.close();
+                //В цикле построчно считываем файл
+                String s;
+                while ((s = in.readLine()) != null) {
+                    readBuffer.append(s);
                 }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
+                String[] splitFile = readBuffer.toString().trim().split("(~\\|)");
 
-            //задаем русский, английский алфавиты и спец символы
-            //спецсимволы и английский алфавит
-            for (int i = 32; i < 127; i++) {
-                dictionary.put("" + (char) i, code++);
+                for (int i = 0; i < splitFile.length; i += 2) {
+                    dictionary.put(splitFile[i], Short.parseShort(splitFile[i + 1]));
+                }
+            } finally {
+                in.close();
             }
-            for (int i = 1040; i < 1104; i++) {
-                dictionary.put("" + (char) i, code++);
-            }
-            //добавления №
-            dictionary.put("" + (char) 8470, code++);
-            //добавление символа ё
-            dictionary.put("" + (char) 1105, code++);
-            //добавление символа Ё
-            dictionary.put("" + (char) 1025, code++);
-            dictionary.put("" + (char) 171, code++);
-            dictionary.put("" + (char) 187, code++);
-
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        Short max = 0;
-        for (Map.Entry<String, Short> entry : dictionary.entrySet()) {
-            if (entry.getValue() > max) {
-                max = entry.getValue();
+        return dictionary;
+    }
+
+    public Map<String, Short> startTable() {
+        Map<String, Short> dictionary = new HashMap<String, Short>();
+        Short code = 0;
+        //задаем русский, английский алфавиты и спец символы
+        //спецсимволы и английский алфавит
+        for (int i = 32; i < 127; i++) {
+            dictionary.put("" + (char) i, code++);
+        }
+        for (int i = 1040; i < 1104; i++) {
+            dictionary.put("" + (char) i, code++);
+        }
+        //добавления №
+        dictionary.put("" + (char) 8470, code++);
+        //добавление символа ё
+        dictionary.put("" + (char) 1105, code++);
+        //добавление символа Ё
+        dictionary.put("" + (char) 1025, code++);
+        //символы открывающихся / закрывающихся ковычек
+        dictionary.put("" + (char) 171, code++);
+        dictionary.put("" + (char) 187, code++);
+        //перенос
+        dictionary.put("" + (char) 182, code++);
+        return dictionary;
+    }
+    
+    public Map<String, Short> generateCode(Short code, Map<String, Short> dictionary){
+        if (jRadioButton4.isSelected()) {
+            //генерируем коды лексических едениц до определенной частоты встречания
+            for (int i = 0; i < was.size(); i++) {
+                if (was.get(i).getFrequency() > Double.parseDouble(jComboBox1.getSelectedItem().toString()) && code < 4096 && !dictionary.containsKey(was.get(i).getWord())) {
+                    dictionary.put(was.get(i).getWord(), code++);
+                }
             }
         }
-        code = max;
-        System.err.println("num- " + code);
-        //генерируем коды лексических едениц частота встречания которых > 0.5
-        for (int i = 0; i < was.size(); i++) {
-            if (was.get(i).getFrequency() > Double.parseDouble(jComboBox1.getSelectedItem().toString()) && code < 4096 && !dictionary.containsKey(was.get(i).getWord())) {
-                dictionary.put(was.get(i).getWord(), code);
-                System.err.println(was.get(i).getWord());
-                System.err.println("c-- " + code);
-                code++;
-
+        if (jRadioButton5.isSelected()) {
+            //генерируем коды до лексической еденицы с определенным номером
+            for (int i = 0; i < was.size(); i++) {
+                if (i < Integer.parseInt(jSpinner3.getValue().toString()) && code < 4096 && !dictionary.containsKey(was.get(i).getWord())) {
+                    dictionary.put(was.get(i).getWord(), code++);
+                }
             }
-
         }
-        //записываем в файл
+        return dictionary;
+    }
+    
+    public void writeTableInFile(Map<String, Short> dictionary){
         File writeFile = new File("../CodeDecode/bankcode.txt");
         try {
             //проверяем, что если файл не существует то создаем его
@@ -649,22 +699,43 @@ public class NewJFrame extends javax.swing.JFrame {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+        File file = new File("../CodeDecode/bankcode.txt");
+        Map<String, Short> dictionary = new HashMap<String, Short>();
+        Short code = 0;
+        if (file.exists() && file.length() != 0) {
+            dictionary = readTable(file);
+        } else {
+            dictionary = startTable();
+        }
+        Short max = 0;
+        for (Map.Entry<String, Short> entry : dictionary.entrySet()) {
+            if (entry.getValue() > max) {
+                max = entry.getValue();
+            }
+        }
+        code = max;
+        dictionary = generateCode(code, dictionary);
+        //записываем в файл
+        writeTableInFile(dictionary);
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void cbItemStateChanged(java.awt.event.ItemEvent evt) {
         // TODO add your handling code here:
         if (jRadioButton1.isSelected() || jRadioButton2.isSelected()) {
-            ArrayList<Integer> step = createStep(words.length);
-            chart = createPlot(was, step, cb.getSelectedItem(), words.length);
+            ArrayList<Integer> step = createStep(readFile.length());
+            chart = createPlot(was, step, cb.getSelectedItem());
         } else if (jRadioButton3.isSelected()) {
-            ArrayList<Integer> step = createStep(chars.length);
-            chart = createPlot(was, step, cb.getSelectedItem(), chars.length);
+            ArrayList<Integer> step = createStep(readFile.length());
+            chart = createPlot(was, step, cb.getSelectedItem());
         }
         ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
         plotDesign(chart);
         JLabel title = new JLabel();
-        title.setText("График зависимости частоты появление лексической единицы '" + cb.getSelectedItem().toString().toUpperCase() + "' от длины текста");
+        title.setText("График зависимости частоты появление лексической единицы '" + cb.getSelectedItem().toString() + "' от длины текста");
 
         chartPanel.setSize(panelJPanel.getSize());
         panelJPanel.removeAll();
@@ -712,6 +783,7 @@ public class NewJFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
@@ -723,16 +795,18 @@ public class NewJFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JList jList1;
     private javax.swing.JRadioButton jRadioButton1;
     private javax.swing.JRadioButton jRadioButton2;
     private javax.swing.JRadioButton jRadioButton3;
+    private javax.swing.JRadioButton jRadioButton4;
+    private javax.swing.JRadioButton jRadioButton5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSpinner jSpinner1;
     private javax.swing.JSpinner jSpinner2;
+    private javax.swing.JSpinner jSpinner3;
     private javax.swing.JTable jTable1;
     // End of variables declaration//GEN-END:variables
 

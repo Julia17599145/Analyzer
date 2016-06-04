@@ -32,26 +32,30 @@ public class WordStatisticTableModel implements TableModel {
     public Class<?> getColumnClass(int columnIndex) {
         switch (columnIndex) {
             case 0:
-                return String.class;
+                return Integer.class;
             case 1:
-                return long.class;
+                return String.class;
             case 2:
+                return long.class;
+            case 3:
                 return double.class;
         }
         return String.class;
     }
 
     public int getColumnCount() {
-        return 3;
+        return 4;
     }
 
     public String getColumnName(int columnIndex) {
         switch (columnIndex) {
             case 0:
-                return "Слово";
+                return "№";
             case 1:
-                return "Количество";
+                return "Лексема";
             case 2:
+                return "Количество";
+            case 3:
                 return "Частота";
         }
         return "";
@@ -65,11 +69,13 @@ public class WordStatisticTableModel implements TableModel {
         WordStatistic wordsAndAmounts = wordsAndAmountsOfText.get(rowIndex);
         DecimalFormat f = new DecimalFormat("#,#####0.00000");
         switch (columnIndex) {
-            case 0:
-                return wordsAndAmounts.getWord();
+            case 0: 
+                return rowIndex + 1;
             case 1:
-                return wordsAndAmounts.getAmount();
+                return wordsAndAmounts.getWord();
             case 2:
+                return wordsAndAmounts.getAmount();
+            case 3:
                 return f.format(wordsAndAmounts.getFrequency());
         }
         return "";
