@@ -679,7 +679,7 @@ public class NewJFrame extends javax.swing.JFrame {
     }
     
     public void writeTableInFile(Map<String, Short> dictionary){
-        File writeFile = new File("../CodeDecode/bankcode.txt");
+        File writeFile = new File("../CoderDecoder/bankcode.txt");
         try {
             //проверяем, что если файл не существует то создаем его
             if (!writeFile.exists()) {
@@ -702,7 +702,7 @@ public class NewJFrame extends javax.swing.JFrame {
     }
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        File file = new File("../CodeDecode/bankcode.txt");
+        File file = new File("../CoderDecoder/bankcode.txt");
         Map<String, Short> dictionary = new HashMap<String, Short>();
         Short code = 0;
         if (file.exists() && file.length() != 0) {
