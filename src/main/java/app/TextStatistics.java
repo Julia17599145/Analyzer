@@ -56,8 +56,6 @@ public class TextStatistics {
         partFrequency.add(0.0);
         for(int j = 1; j < 200; j++){
         for (int i = minN; i < step; i++) {
-           // step += words.size() / 200;
-            //  System.out.println(words.get(i));
             if (words.get(i).equals(word)) {
                 amount++;
             }
@@ -65,12 +63,8 @@ public class TextStatistics {
             minN = step;
             
             partFrequency.add(amount / (double) step);
-           // System.out.println(partFrequency[j]);
             step += words.size() / 200;
         }
-
-        
-
         return partFrequency;
     }
 }

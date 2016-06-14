@@ -17,19 +17,11 @@ import java.util.HashSet;
  */
 public class WordStatistic implements Comparable<WordStatistic> {
 
-    final String word;
-    long amount = 0;
-    double frequency = 0;
-    //HashSet<Double> partFrequency = new HashSet<Double>();
-    ArrayList<Double> partFrequency = new ArrayList<Double>();
-    //double[] partFrequency = new double[201];
+    private final String word;
+    private long amount = 0;
+    private double frequency = 0;
+    private ArrayList<Double> partFrequency = new ArrayList<Double>();
     
-    //private String name;
-    /*public Person(String value){
-         
-     name=value;
-     }*/
-    //String getName(){return name;}
     public int compareTo(WordStatistic w) {
         if (frequency < w.getFrequency()) {
             /* текущее меньше полученного */
